@@ -1,22 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import createSagaMiddleware from "redux-saga";
-import game from "./redux/game";
-
-const rootReducer = {
-  game: game.reducer,
-};
-
-function* rootSaga() {
-  yield* game.saga();
-}
+import root from "./root";
 
 export default () => {
   const sagaMiddleware = createSagaMiddleware();
-
   const store = configureStore({
-    reducer: rootReducer,
+    reducer: root.reducer,
     middleware: [sagaMiddleware],
   });
-  sagaMiddleware.run(rootSaga);
+  sagaMiddleware.run(root.saga);
   return store;
 };

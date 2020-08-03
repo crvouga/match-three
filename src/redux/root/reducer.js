@@ -18,7 +18,7 @@ export const makeItem = () => ({
 export const makeGrid = (rowCount, columnCount) =>
   R.times(() => R.times(() => makeItem(), columnCount), rowCount);
 
-const initialBoard = makeGrid(8, 12);
+const initialBoard = makeGrid(7, 8);
 
 export default createReducer(
   {

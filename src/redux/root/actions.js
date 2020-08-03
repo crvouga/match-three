@@ -8,4 +8,5 @@ export default {
   grab: createAction("GRAB"),
   drop: createAction("DROP"),
   swap: createAction("SWAP"),
+  select: createAction("SELECT"),
 };
