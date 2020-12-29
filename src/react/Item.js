@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import React from "react";
 import root from "../redux/root";
 import { useSelector } from "react-redux";
+
 const style = { width: "100%", height: "100%" };
 
 const toIcon = (_) =>

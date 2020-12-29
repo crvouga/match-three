@@ -1,11 +1,11 @@
+import { Box, makeStyles } from "@material-ui/core";
+import * as colors from "@material-ui/core/colors";
 import { AnimatePresence } from "framer-motion";
-import React, { useRef, useState, useEffect, useLayoutEffect } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { Flipped, Flipper } from "react-flip-toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import root from "../redux/root";
 import Item from "./Item";
-import { Box, makeStyles, useTheme } from "@material-ui/core";
-import * as colors from "@material-ui/core/colors";
 
 const useSize = (ref) => {
   const [size, setSize] = useState([0, 0]);
@@ -38,15 +38,9 @@ export default () => {
   const board = useSelector(root.selectors.board);
   const columnCount = useSelector(root.selectors.columnCount);
   const rowCount = useSelector(root.selectors.rowCount);
-  const theme = useTheme();
+
   const dispatch = useDispatch();
 
-  const handleGrab = (index, item) => (e) => {
-    dispatch(root.actions.grab({ item, index }));
-  };
-  const handleDrop = (index, item) => (e) => {
-    dispatch(root.actions.drop({ index, item }));
-  };
   const handleClick = (index, item) => (e) => {
     dispatch(root.actions.select({ index, item }));
   };
@@ -67,8 +61,8 @@ export default () => {
       />
       <Flipper flipKey={JSON.stringify(board)} className={classes.checker}>
         <AnimatePresence>
-          {board.map((_, columnIndex) =>
-            _.map((item, rowIndex) =>
+          {board.map((column, columnIndex) =>
+            column.map((item, rowIndex) =>
               item ? (
                 <Flipped key={item.id} flipId={item.id}>
                   <div

@@ -5,6 +5,9 @@ import App from "./App";
 const theme = createMuiTheme({
   palette: {
     type: "dark",
+    background: {
+      default: "#212121",
+    },
   },
 });
 

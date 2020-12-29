@@ -1,4 +1,3 @@
-import { createSelector } from "@reduxjs/toolkit";
 import * as R from "ramda";
 
 export const selected = R.prop("selected");
