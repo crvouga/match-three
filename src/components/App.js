@@ -1,6 +1,6 @@
 import { Container, makeStyles } from "@material-ui/core";
 import React from "react";
-import Board from "./Board";
+import { GameBoard } from "./GameBoard";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -10,12 +10,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default () => {
+export const App = () => {
   const classes = useStyles();
 
   return (
-    <Container maxWidth="xs" disableGutters className={classes.root}>
-      <Board />
+    <Container maxWidth="xs" className={classes.root}>
+      <GameBoard />
     </Container>
   );
 };

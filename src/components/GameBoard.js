@@ -3,25 +3,31 @@ import * as colors from "@material-ui/core/colors";
 import { AnimatePresence } from "framer-motion";
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { Flipped, Flipper } from "react-flip-toolkit";
-import { useDispatch, useSelector } from "react-redux";
-import root from "../redux/root";
-import Item from "./Item";
+import { useMatchThree } from "../match-three/useMatchThree";
+import { GameBoardItem } from "./GameBoardItem";
 
 const useSize = (ref) => {
   const [size, setSize] = useState([0, 0]);
+
   useLayoutEffect(() => {
     if (ref.current) {
       const updateSize = () => {
         setSize([ref.current.offsetWidth, ref.current.offsetHeight]);
       };
+
       window.addEventListener("resize", updateSize);
+
       updateSize();
 
-      return () => window.removeEventListener("resize", updateSize);
+      return () => {
+        window.removeEventListener("resize", updateSize);
+      };
     }
-  }, [ref.current]);
+  }, [ref]);
+
   return size;
 };
+
 const toFill = (item) => colors[item.color][500];
 
 const toPercent = (decimal) => `${decimal * 100}%`;
@@ -33,19 +39,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default () => {
+export const GameBoard = () => {
   const classes = useStyles();
-  const board = useSelector(root.selectors.board);
-  const columnCount = useSelector(root.selectors.columnCount);
-  const rowCount = useSelector(root.selectors.rowCount);
-
-  const dispatch = useDispatch();
+  const matchThree = useMatchThree();
+  const { board, columnCount, rowCount } = matchThree;
 
   const handleClick = (index, item) => (e) => {
-    dispatch(root.actions.select({ index, item }));
+    matchThree.select({ index, item });
   };
+
   const ref = useRef();
+
   const [width] = useSize(ref);
+
   const height = (width / columnCount) * rowCount;
 
   return (
@@ -76,7 +82,7 @@ export default () => {
                     }}
                     onClick={handleClick([columnIndex, rowIndex], item)}
                   >
-                    <Item
+                    <GameBoardItem
                       width={width}
                       rowIndex={rowIndex}
                       columnIndex={columnIndex}

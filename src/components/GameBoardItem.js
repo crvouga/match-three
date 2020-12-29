@@ -5,8 +5,7 @@ import InvertColorsIcon from "@material-ui/icons/InvertColors";
 import NatureIcon from "@material-ui/icons/Nature";
 import { motion } from "framer-motion";
 import React from "react";
-import root from "../redux/root";
-import { useSelector } from "react-redux";
+import { useMatchThree } from "../match-three/useMatchThree";
 
 const style = { width: "100%", height: "100%" };
 
@@ -19,8 +18,16 @@ const toIcon = (_) =>
     purple: <AcUnitIcon style={style} />,
   }[_.color]);
 
-export default ({ width, item, rowIndex, columnIndex, ...props }) => {
-  const selected = useSelector(root.selectors.selected);
+export const GameBoardItem = ({
+  width,
+  item,
+  rowIndex,
+  columnIndex,
+  ...props
+}) => {
+  const matchThree = useMatchThree();
+  const { selected } = matchThree;
+
   return (
     <motion.div
       initial={{
