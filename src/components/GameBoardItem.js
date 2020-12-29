@@ -38,7 +38,10 @@ export const GameBoardItem = ({
         scale: 1,
         transformOrigin: "center",
       }}
-      exit={{ transformOrigin: "center", scale: 0 }}
+      exit={{
+        transformOrigin: "center",
+        scale: 0,
+      }}
       {...props}
     >
       <motion.div
