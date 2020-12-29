@@ -5,7 +5,8 @@ import Board from "./Board";
 const useStyles = makeStyles((theme) => ({
   root: {
     touchAction: "none",
-    // marginTop: theme.spacing(12),
+
+    marginTop: theme.spacing(6),
   },
 }));
 

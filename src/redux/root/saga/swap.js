@@ -1,7 +1,8 @@
 import * as R from "ramda";
-import { put, select, take } from "redux-saga/effects";
+import { delay, put, select, take } from "redux-saga/effects";
 import actions from "../actions";
 import * as selectors from "../selectors";
+import { clear } from "../reducer";
 
 const swapIndexes = (index1, index2, board) =>
   R.pipe(
@@ -28,8 +29,15 @@ export default function* () {
 
     if (second.index && isAdjacentIndexes(first.index, second.index)) {
       const board = yield select(selectors.board);
-      const newBoard = swapIndexes(first.index, second.index, board);
-      yield put(actions.setBoard(newBoard));
+
+      const nextBoard = swapIndexes(first.index, second.index, board);
+
+      yield put(actions.setBoard(nextBoard));
+
+      if (R.equals(nextBoard, clear(nextBoard))) {
+        yield delay(500);
+        yield put(actions.setBoard(board));
+      }
     }
     yield put(actions.setSelected(null));
   }

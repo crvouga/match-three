@@ -30,7 +30,7 @@ export const collapse = R.map(R.sort(R.descend(R.isNil)));
 
 export const fill = R.map(R.map(R.when(R.isNil, makeItem)));
 
-const stablizeBoard = (board) =>
+export const stablizeBoard = (board) =>
   R.equals(board, clear(board))
     ? board
     : stablizeBoard(fill(collapse(clear(board))));
