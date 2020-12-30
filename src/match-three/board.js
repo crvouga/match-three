@@ -6,7 +6,7 @@ import { createId, distance, randomNth } from "../utility";
 
 */
 
-const COLORS = ["red", "blue", "green", "yellow", "purple"];
+export const COLORS = ["red", "blue", "green", "yellow", "purple"];
 
 const isEmptySlot = R.isNil;
 
