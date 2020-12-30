@@ -28,7 +28,7 @@ function* swapFlow() {
     yield put(setBoard(nextBoard));
 
     if (isStable(nextBoard)) {
-      yield delay(1000 / 3);
+      yield delay(1000 / 2);
 
       yield put(setBoard(previousBoard));
     }
@@ -57,7 +57,7 @@ function* cascadeFlow() {
   }
 }
 
-function* cascadeSaga() {
+function* boardFlow() {
   while (true) {
     yield* cascadeFlow();
 
@@ -65,7 +65,7 @@ function* cascadeSaga() {
   }
 }
 
-function* initialSaga() {
+export function* boardSaga() {
   const emptyBoard = [[]];
 
   yield put(setBoard(emptyBoard));
@@ -75,9 +75,6 @@ function* initialSaga() {
   const initialBoard = makeBoard();
 
   yield put(setBoard(initialBoard));
-}
 
-export function* boardSaga() {
-  yield* initialSaga();
-  yield fork(cascadeSaga);
+  yield fork(boardFlow);
 }

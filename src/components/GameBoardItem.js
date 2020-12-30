@@ -7,7 +7,6 @@ import InvertColorsIcon from "@material-ui/icons/InvertColors";
 import NatureIcon from "@material-ui/icons/Nature";
 import { motion } from "framer-motion";
 import React, { useRef } from "react";
-import { useMatchThree } from "../match-three/useMatchThree";
 import { useDisableZoom } from "./useDisableZoom";
 
 const muiColorToGradient = (muiColor) =>
@@ -28,12 +27,6 @@ const useStyles = makeStyles((theme) => ({
     height: "100%",
 
     backgroundImage: ({ color }) => muiColorToGradient(colorToMuiColor(color)),
-
-    // backgroundSize: "100%",
-    // WebkitBackgroundClip: "text",
-    // MozBackgroundClip: "text",
-    // WebkitTextFillColor: "transparent",
-    // MozTextFillColor: "transparent",
   },
 }));
 
@@ -57,12 +50,7 @@ const Icon = ({ item }) => {
 };
 
 export const GameBoardItem = ({ item }) => {
-  const matchThree = useMatchThree();
-  const { selected } = matchThree;
-
   const ref = useRef();
-
-  const isSelected = item?.id === selected?.item?.id;
 
   useDisableZoom(ref.current);
 
@@ -82,13 +70,7 @@ export const GameBoardItem = ({ item }) => {
         scale: 0,
       }}
     >
-      <motion.div
-        initial={{ scale: 1 }}
-        animate={{ scale: isSelected ? 1.3 : 1 }}
-        exit={{ scale: 1 }}
-      >
-        <Icon item={item} />
-      </motion.div>
+      <Icon item={item} />
     </motion.div>
   );
 };

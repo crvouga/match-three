@@ -1,32 +1,11 @@
-import * as R from "ramda";
 import { Box, makeStyles } from "@material-ui/core";
-import { AnimatePresence } from "framer-motion";
-import React, { useLayoutEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import * as R from "ramda";
+import React, { useRef, useState } from "react";
 import { Flipped, Flipper } from "react-flip-toolkit";
 import { useMatchThree } from "../match-three/useMatchThree";
 import { GameBoardItem } from "./GameBoardItem";
-
-const useSize = (ref) => {
-  const [size, setSize] = useState([0, 0]);
-
-  useLayoutEffect(() => {
-    if (ref.current) {
-      const updateSize = () => {
-        setSize([ref.current.offsetWidth, ref.current.offsetHeight]);
-      };
-
-      window.addEventListener("resize", updateSize);
-
-      updateSize();
-
-      return () => {
-        window.removeEventListener("resize", updateSize);
-      };
-    }
-  }, [ref]);
-
-  return size;
-};
+import { useSize } from "./useSize";
 
 const toPercent = (decimal) => `${decimal * 100}%`;
 
@@ -37,8 +16,15 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const GameBoardCheckers = () => {
-  return <Box position="absolute"></Box>;
+const selectedVariants = {
+  notSelected: {
+    scale: 1,
+    opacity: 1,
+  },
+  selected: {
+    scale: 1 + 1 / 3,
+    opacity: 3 / 4,
+  },
 };
 
 export const GameBoard = () => {
@@ -56,34 +42,50 @@ export const GameBoard = () => {
 
   return (
     <Box ref={ref} width="100%" height={height} position="relative">
-      <GameBoardCheckers />
       <Flipper flipKey={JSON.stringify(board)} className={classes.checker}>
         <AnimatePresence>
           {board.map((column, columnIndex) =>
             column.map((item, rowIndex) =>
               item ? (
                 <Flipped key={item.id} flipId={item.id}>
-                  <div
+                  <Box
                     style={{
                       position: "absolute",
                       top: toPercent(rowIndex / rowCount),
                       left: toPercent(columnIndex / columnCount),
                       width: width / columnCount,
-                      height: width / columnCount,
+                      height: height / rowCount,
+                      zIndex: R.equals(startIndex, [columnIndex, rowIndex])
+                        ? 2
+                        : 1,
                     }}
                     onMouseDown={() => {
-                      setStartIndex([columnIndex, rowIndex]);
+                      setStartIndex(
+                        startIndex ? undefined : [columnIndex, rowIndex]
+                      );
                     }}
                     onMouseEnter={() => {
                       const endIndex = [columnIndex, rowIndex];
+
                       if (startIndex && !R.equals(startIndex, endIndex)) {
                         matchThree.move(startIndex, [columnIndex, rowIndex]);
-                        setStartIndex(undefined);
                       }
+
+                      setStartIndex(undefined);
                     }}
                   >
-                    <GameBoardItem item={item} />
-                  </div>
+                    <motion.div
+                      variants={selectedVariants}
+                      initial="notSelected"
+                      animate={
+                        R.equals(startIndex, [columnIndex, rowIndex])
+                          ? "selected"
+                          : "notSelected"
+                      }
+                    >
+                      <GameBoardItem item={item} />
+                    </motion.div>
+                  </Box>
                 </Flipped>
               ) : null
             )
