@@ -9,24 +9,22 @@ import { useStylesCursor } from "./useStylesCursor";
 
 export const GameBoard = () => {
   const matchThree = useMatchThree();
-  const cursorClass = useStylesCursor();
+  const cursorClassName = useStylesCursor();
   const { board, columnCount, rowCount } = matchThree;
 
   const ref = useRef();
-
   const [boardWidth] = useSize(ref);
-
   const boardHeight = (boardWidth / columnCount) * rowCount;
 
   const flipKey = JSON.stringify(board);
 
   return (
     <Box
+      className={cursorClassName}
       ref={ref}
       width="100%"
       height={boardHeight}
       position="relative"
-      className={cursorClass}
     >
       <Flipper flipKey={flipKey}>
         <AnimatePresence>

@@ -18,6 +18,7 @@ const colorToMuiColor = (color) =>
 
 const useStyles = makeStyles((theme) => ({
   item: {
+    margin: theme.spacing(1),
     width: "100%",
     height: "100%",
     background: ({ color }) => muiColorToGradient(colorToMuiColor(color)),

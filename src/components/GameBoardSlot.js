@@ -1,7 +1,7 @@
 import { Box } from "@material-ui/core";
 import { motion } from "framer-motion";
 import * as R from "ramda";
-import React from "react";
+import React, { useState } from "react";
 import { Flipped } from "react-flip-toolkit";
 import { Status } from "../match-three";
 import { useMatchThree } from "../match-three/useMatchThree";
@@ -18,25 +18,38 @@ const selectedVariants = {
     scale: 1 + 1 / 3,
     opacity: 3 / 4,
   },
+  hover: {
+    scale: 0.9,
+    opacity: 0.9,
+  },
 };
 
 export const GameBoardSlot = (props) => {
+  const { rowIndex, columnIndex, boardHeight, boardWidth, item } = props;
+
   const {
-    rowIndex,
-    columnIndex,
-    boardHeight,
-    boardWidth,
-    item,
+    grabbed,
+    columnCount,
+    rowCount,
+    grab,
+    drop,
     status,
-  } = props;
-
-  const { grabbed, columnCount, rowCount, grab, drop } = useMatchThree();
-
+  } = useMatchThree();
+  const isCollapsing = status === Status.COLLAPSING;
   const isGrabbed = R.equals(grabbed, [columnIndex, rowIndex]);
+  const [isHovering, setIsHovering] = useState(false);
+
+  const variant = isCollapsing
+    ? "notSelected"
+    : isGrabbed
+    ? "selected"
+    : isHovering
+    ? "hover"
+    : "notSelected";
 
   const handleGrab = () => {
     if (isGrabbed) {
-      grab(undefined);
+      drop([columnIndex, rowIndex]);
     } else {
       grab([columnIndex, rowIndex]);
     }
@@ -55,17 +68,22 @@ export const GameBoardSlot = (props) => {
     width: boardWidth / columnCount,
     height: boardHeight / rowCount,
     zIndex: isGrabbed ? 2 : 1,
-    cursor: status === Status.COLLAPSING ? "grab" : undefined,
   };
 
   return (
     <Flipped key={item.id} flipId={item.id}>
       <Box style={styles} onMouseDown={handleGrab} onMouseEnter={handleDrop}>
         <motion.div
+          onHoverStart={() => {
+            setIsHovering(true);
+          }}
+          onHoverEnd={() => {
+            setIsHovering(false);
+          }}
           style={{ width: "100%", height: "100%" }}
           variants={selectedVariants}
           initial="notSelected"
-          animate={isGrabbed ? "selected" : "notSelected"}
+          animate={variant}
         >
           <GameBoardItem item={item} />
         </motion.div>
