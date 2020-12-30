@@ -42,9 +42,13 @@ export const swapIndexes = (index1, index2, board) =>
     R.assocPath(index2, R.path(index1, board))
   )(board);
 
-export const isAdjacentIndexes = R.pipe(
+const sqr = (x) => x * x;
+
+export const distance = R.pipe(
   R.zipWith(R.subtract),
+  R.map(sqr),
   R.sum,
-  Math.abs,
-  R.lte(R.__, 1)
+  Math.sqrt
 );
+
+export const isAdjacentIndexes = R.pipe(distance, R.equals(1));
