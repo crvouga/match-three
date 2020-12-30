@@ -1,12 +1,11 @@
 import { Box, makeStyles } from "@material-ui/core";
 import { AnimatePresence, motion } from "framer-motion";
 import * as R from "ramda";
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Flipped, Flipper } from "react-flip-toolkit";
 import { useMatchThree } from "../match-three/useMatchThree";
 import { GameBoardItem } from "./GameBoardItem";
 import { useSize } from "./useSize";
-
 const toPercent = (decimal) => `${decimal * 100}%`;
 
 const useStyles = makeStyles((theme) => ({
@@ -30,9 +29,7 @@ const selectedVariants = {
 export const GameBoard = () => {
   const classes = useStyles();
   const matchThree = useMatchThree();
-  const { board, columnCount, rowCount } = matchThree;
-
-  const [startIndex, setStartIndex] = useState(undefined);
+  const { board, grabbed, columnCount, rowCount } = matchThree;
 
   const ref = useRef();
 
@@ -40,9 +37,11 @@ export const GameBoard = () => {
 
   const height = (width / columnCount) * rowCount;
 
+  const flipKey = JSON.stringify(board);
+
   return (
     <Box ref={ref} width="100%" height={height} position="relative">
-      <Flipper flipKey={JSON.stringify(board)} className={classes.checker}>
+      <Flipper flipKey={flipKey} className={classes.checker}>
         <AnimatePresence>
           {board.map((column, columnIndex) =>
             column.map((item, rowIndex) =>
@@ -55,30 +54,28 @@ export const GameBoard = () => {
                       left: toPercent(columnIndex / columnCount),
                       width: width / columnCount,
                       height: height / rowCount,
-                      zIndex: R.equals(startIndex, [columnIndex, rowIndex])
+                      zIndex: R.equals(grabbed, [columnIndex, rowIndex])
                         ? 2
                         : 1,
                     }}
                     onMouseDown={() => {
-                      setStartIndex(
-                        startIndex ? undefined : [columnIndex, rowIndex]
-                      );
+                      if (R.equals(grabbed, [columnIndex, rowIndex])) {
+                        matchThree.grab(undefined);
+                      } else {
+                        matchThree.grab([columnIndex, rowIndex]);
+                      }
                     }}
                     onMouseEnter={() => {
-                      const endIndex = [columnIndex, rowIndex];
-
-                      if (startIndex && !R.equals(startIndex, endIndex)) {
-                        matchThree.move(startIndex, [columnIndex, rowIndex]);
+                      if (grabbed) {
+                        matchThree.drop([columnIndex, rowIndex]);
                       }
-
-                      setStartIndex(undefined);
                     }}
                   >
                     <motion.div
                       variants={selectedVariants}
                       initial="notSelected"
                       animate={
-                        R.equals(startIndex, [columnIndex, rowIndex])
+                        R.equals(grabbed, [columnIndex, rowIndex])
                           ? "selected"
                           : "notSelected"
                       }

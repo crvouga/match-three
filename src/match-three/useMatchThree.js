@@ -6,10 +6,13 @@ const { selectors, actions } = matchThree;
 
 export const useMatchThree = () => {
   const rowCount = useSelector(selectors.rowCount);
+
   const columnCount = useSelector(selectors.columnCount);
+
   const board = useSelector(selectors.board);
-  const selected = useSelector(selectors.selected);
-  const isStable = useSelector(selectors.isStable);
+
+  const grabbed = useSelector(selectors.grabbed);
+
   const dispatch = useDispatch();
 
   return {
@@ -17,7 +20,6 @@ export const useMatchThree = () => {
     rowCount,
     columnCount,
     board,
-    selected,
-    isStable,
+    grabbed,
   };
 };

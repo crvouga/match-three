@@ -1,6 +1,5 @@
 import { createAction, createReducer, createSelector } from "@reduxjs/toolkit";
 import * as R from "ramda";
-import { isStable } from "./board";
 
 /* 
 
@@ -8,17 +7,16 @@ import { isStable } from "./board";
 */
 
 const slice = (state) => state.matchThree;
-const board = createSelector([slice], R.prop("board"));
+const board = createSelector([slice], (slice) => slice.board);
 const columnCount = createSelector([board], R.length);
 const rowCount = createSelector([board], R.pipe(R.head, R.length));
-const selected = createSelector([slice], R.prop("selected"));
+const grabbed = createSelector([slice], (slice) => slice.grabbed);
 
 const selectors = {
   board,
   columnCount,
   rowCount,
-  selected,
-  isStable: createSelector([board], isStable),
+  grabbed,
 };
 
 /*
@@ -28,9 +26,10 @@ const selectors = {
 
 const actions = {
   setBoard: createAction("[match-three] SET_BOARD"),
-  move: createAction("[match-three] MOVE", (index1, index2) => ({
-    payload: [index1, index2],
-  })),
+  setGrabbed: createAction("[match-three] SET_GRABBED"),
+  //
+  grab: createAction("[match-three] GRAB"),
+  drop: createAction("[match-three] DROP"),
 };
 
 /* 
@@ -40,16 +39,15 @@ const actions = {
 
 const reducer = createReducer(
   {
-    board: null,
-    selected: null,
-    status: null,
+    board: undefined,
+    grabbed: undefined,
   },
   {
     [actions.setBoard]: (state, action) => {
       state.board = action.payload;
     },
-    [actions.setSelected]: (state, action) => {
-      state.selected = action.payload;
+    [actions.setGrabbed]: (state, action) => {
+      state.grabbed = action.payload;
     },
   }
 );

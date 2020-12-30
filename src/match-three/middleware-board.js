@@ -1,36 +1,44 @@
+import { createAction } from "@reduxjs/toolkit";
 import { not } from "ramda";
 import { delay, fork, put, select, take } from "redux-saga/effects";
 import {
   clear,
   collapse,
+  createRandomBoard,
   fill,
-  isAdjacentIndexes,
+  isAdjacent,
   isStable,
-  makeBoard,
-  swapIndexes,
+  swap,
 } from "./board";
 import { matchThree } from "./match-three";
 
+export const animationActions = {
+  started: createAction("[animation] STARTED"),
+  completed: createAction("[animation] COMPLETED"),
+};
+
 const { actions, selectors } = matchThree;
-const { setBoard, move } = actions;
+const { setBoard, setGrabbed, grab, drop } = actions;
 const { board } = selectors;
 
 function* swapFlow() {
-  const {
-    payload: [index1, index2],
-  } = yield take(move);
+  const { payload: index1 } = yield take(grab);
 
-  if (isAdjacentIndexes(index1, index2)) {
-    const previousBoard = yield select(board);
+  yield put(setGrabbed(index1));
 
-    const nextBoard = swapIndexes(index1, index2, yield select(board));
+  const { payload: index2 } = yield take(drop);
 
-    yield put(setBoard(nextBoard));
+  yield put(setGrabbed(undefined));
 
-    if (isStable(nextBoard)) {
+  if (isAdjacent(index1, index2)) {
+    const previous = yield select(board);
+
+    yield put(setBoard(swap(index1, index2, yield select(board))));
+
+    if (isStable(yield select(board))) {
       yield delay(1000 / 2);
 
-      yield put(setBoard(previousBoard));
+      yield put(setBoard(previous));
     }
   }
 }
@@ -39,21 +47,15 @@ function* cascadeFlow() {
   while (not(isStable(yield select(board)))) {
     yield delay(1000 / 3);
 
-    const cleared = clear(yield select(board));
-
-    yield put(setBoard(cleared));
+    yield put(setBoard(clear(yield select(board))));
 
     yield delay(1000 / 3);
 
-    const collapsed = collapse(yield select(board));
-
-    yield put(setBoard(collapsed));
+    yield put(setBoard(collapse(yield select(board))));
 
     yield delay(1000 / 3);
 
-    const filled = fill(yield select(board));
-
-    yield put(setBoard(filled));
+    yield put(setBoard(fill(yield select(board))));
   }
 }
 
@@ -72,7 +74,7 @@ export function* boardSaga() {
 
   yield delay(1000);
 
-  const initialBoard = makeBoard();
+  const initialBoard = createRandomBoard();
 
   yield put(setBoard(initialBoard));
 
