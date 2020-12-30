@@ -46,5 +46,5 @@ export const isAdjacentIndexes = R.pipe(
   R.zipWith(R.subtract),
   R.sum,
   Math.abs,
-  (_) => 0 < _ && _ <= 1
+  R.lte(R.__, 1)
 );

@@ -1,5 +1,4 @@
 import { Box, makeStyles } from "@material-ui/core";
-import * as colors from "@material-ui/core/colors";
 import { AnimatePresence } from "framer-motion";
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { Flipped, Flipper } from "react-flip-toolkit";
@@ -28,8 +27,6 @@ const useSize = (ref) => {
   return size;
 };
 
-const toFill = (item) => colors[item.color][500];
-
 const toPercent = (decimal) => `${decimal * 100}%`;
 
 const useStyles = makeStyles((theme) => ({
@@ -38,6 +35,10 @@ const useStyles = makeStyles((theme) => ({
       "linear-gradient(rgba(255, 255, 255, .2) 50%, transparent 50%, transparent)",
   },
 }));
+
+const GameBoardCheckers = () => {
+  return <Box position="absolute"></Box>;
+};
 
 export const GameBoard = () => {
   const classes = useStyles();
@@ -56,15 +57,7 @@ export const GameBoard = () => {
 
   return (
     <Box ref={ref} width="100%" height={height} position="relative">
-      <div
-        style={{
-          postion: "aboslute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-        }}
-      />
+      <GameBoardCheckers />
       <Flipper flipKey={JSON.stringify(board)} className={classes.checker}>
         <AnimatePresence>
           {board.map((column, columnIndex) =>
@@ -78,16 +71,11 @@ export const GameBoard = () => {
                       left: toPercent(columnIndex / columnCount),
                       width: width / columnCount,
                       height: width / columnCount,
-                      color: toFill(item),
                     }}
-                    onClick={handleClick([columnIndex, rowIndex], item)}
+                    onTouchStart={handleClick([columnIndex, rowIndex], item)}
+                    onMouseDown={handleClick([columnIndex, rowIndex], item)}
                   >
-                    <GameBoardItem
-                      width={width}
-                      rowIndex={rowIndex}
-                      columnIndex={columnIndex}
-                      item={item}
-                    />
+                    <GameBoardItem item={item} />
                   </div>
                 </Flipped>
               ) : null

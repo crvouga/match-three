@@ -14,7 +14,7 @@ export const App = () => {
   const classes = useStyles();
 
   return (
-    <Container maxWidth="xs" className={classes.root}>
+    <Container maxWidth="xs" disableGutters className={classes.root}>
       <GameBoard />
     </Container>
   );

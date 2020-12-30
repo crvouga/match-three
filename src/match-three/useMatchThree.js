@@ -9,6 +9,7 @@ export const useMatchThree = () => {
   const columnCount = useSelector(selectors.columnCount);
   const board = useSelector(selectors.board);
   const selected = useSelector(selectors.selected);
+  const isStable = useSelector(selectors.isStable);
   const dispatch = useDispatch();
 
   return {
@@ -17,5 +18,6 @@ export const useMatchThree = () => {
     columnCount,
     board,
     selected,
+    isStable,
   };
 };

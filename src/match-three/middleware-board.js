@@ -21,6 +21,8 @@ function* swapFlow() {
 
   const { payload: second } = yield take(actions.select);
 
+  yield put(setSelected(undefined));
+
   if (second.index && isAdjacentIndexes(first.index, second.index)) {
     const previousBoard = yield select(board);
 
@@ -38,8 +40,6 @@ function* swapFlow() {
       yield put(setBoard(previousBoard));
     }
   }
-
-  yield put(setSelected(undefined));
 }
 
 function* cascadeFlow() {
@@ -71,6 +71,7 @@ function* cascadeFlow() {
 function* cascadeSaga() {
   while (true) {
     yield* cascadeFlow();
+
     yield* swapFlow();
   }
 }
@@ -80,7 +81,7 @@ function* initialSaga() {
 
   yield put(setBoard(emptyBoard));
 
-  yield delay(1000 / 3);
+  yield delay(1000);
 
   const initialBoard = makeBoard();
 

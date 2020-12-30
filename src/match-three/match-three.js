@@ -1,5 +1,6 @@
 import { createAction, createReducer, createSelector } from "@reduxjs/toolkit";
 import * as R from "ramda";
+import { isStable } from "./board";
 
 /* 
 
@@ -17,6 +18,7 @@ const selectors = {
   columnCount,
   rowCount,
   selected,
+  isStable: createSelector([board], isStable),
 };
 
 /*
