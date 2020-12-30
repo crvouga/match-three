@@ -1,13 +1,14 @@
-import { Box, makeStyles } from "@material-ui/core";
-import { red, yellow, blue, green, purple } from "@material-ui/core/colors";
+import { makeStyles } from "@material-ui/core";
+import { blue, green, purple, red, yellow } from "@material-ui/core/colors";
 import AcUnitIcon from "@material-ui/icons/AcUnit";
 import Brightness5Icon from "@material-ui/icons/Brightness5";
 import FavoriteIcon from "@material-ui/icons/Favorite";
 import InvertColorsIcon from "@material-ui/icons/InvertColors";
 import NatureIcon from "@material-ui/icons/Nature";
 import { motion } from "framer-motion";
-import React from "react";
+import React, { useRef } from "react";
 import { useMatchThree } from "../match-three/useMatchThree";
+import { useDisableZoom } from "./useDisableZoom";
 
 const muiColorToGradient = (muiColor) =>
   `conic-gradient(${muiColor[400]}, ${muiColor[900]})`;
@@ -59,32 +60,35 @@ export const GameBoardItem = ({ item }) => {
   const matchThree = useMatchThree();
   const { selected } = matchThree;
 
+  const ref = useRef();
+
   const isSelected = item?.id === selected?.item?.id;
 
+  useDisableZoom(ref.current);
+
   return (
-    <Box zIndex={isSelected ? 1000 : undefined}>
+    <motion.div
+      ref={ref}
+      initial={{
+        scale: 0,
+        transformOrigin: "center",
+      }}
+      animate={{
+        scale: 1,
+        transformOrigin: "center",
+      }}
+      exit={{
+        transformOrigin: "center",
+        scale: 0,
+      }}
+    >
       <motion.div
-        initial={{
-          scale: 0,
-          transformOrigin: "center",
-        }}
-        animate={{
-          scale: 1,
-          transformOrigin: "center",
-        }}
-        exit={{
-          transformOrigin: "center",
-          scale: 0,
-        }}
+        initial={{ scale: 1 }}
+        animate={{ scale: isSelected ? 1.3 : 1 }}
+        exit={{ scale: 1 }}
       >
-        <motion.div
-          initial={{ scale: 1 }}
-          animate={{ scale: isSelected ? 1.3 : 1 }}
-          exit={{ scale: 1 }}
-        >
-          <Icon item={item} />
-        </motion.div>
+        <Icon item={item} />
       </motion.div>
-    </Box>
+    </motion.div>
   );
 };

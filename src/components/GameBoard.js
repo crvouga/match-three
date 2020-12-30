@@ -1,3 +1,4 @@
+import * as R from "ramda";
 import { Box, makeStyles } from "@material-ui/core";
 import { AnimatePresence } from "framer-motion";
 import React, { useLayoutEffect, useRef, useState } from "react";
@@ -45,9 +46,7 @@ export const GameBoard = () => {
   const matchThree = useMatchThree();
   const { board, columnCount, rowCount } = matchThree;
 
-  const handleClick = (index, item) => (e) => {
-    matchThree.select({ index, item });
-  };
+  const [startIndex, setStartIndex] = useState(undefined);
 
   const ref = useRef();
 
@@ -72,8 +71,16 @@ export const GameBoard = () => {
                       width: width / columnCount,
                       height: width / columnCount,
                     }}
-                    onTouchStart={handleClick([columnIndex, rowIndex], item)}
-                    onMouseDown={handleClick([columnIndex, rowIndex], item)}
+                    onMouseDown={() => {
+                      setStartIndex([columnIndex, rowIndex]);
+                    }}
+                    onMouseEnter={() => {
+                      const endIndex = [columnIndex, rowIndex];
+                      if (startIndex && !R.equals(startIndex, endIndex)) {
+                        matchThree.move(startIndex, [columnIndex, rowIndex]);
+                        setStartIndex(undefined);
+                      }
+                    }}
                   >
                     <GameBoardItem item={item} />
                   </div>

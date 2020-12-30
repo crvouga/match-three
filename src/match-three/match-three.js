@@ -27,10 +27,10 @@ const selectors = {
 */
 
 const actions = {
-  setBoard: createAction("SET_BOARD"),
-  setSelected: createAction("SET_SELECTED"),
-  //
-  select: createAction("SELECT"),
+  setBoard: createAction("[match-three] SET_BOARD"),
+  move: createAction("[match-three] MOVE", (index1, index2) => ({
+    payload: [index1, index2],
+  })),
 };
 
 /* 

@@ -1,3 +1,4 @@
+import { not } from "ramda";
 import { delay, fork, put, select, take } from "redux-saga/effects";
 import {
   clear,
@@ -11,26 +12,18 @@ import {
 import { matchThree } from "./match-three";
 
 const { actions, selectors } = matchThree;
-const { setSelected, setBoard } = actions;
+const { setBoard, move } = actions;
 const { board } = selectors;
 
 function* swapFlow() {
-  const { payload: first } = yield take(actions.select);
+  const {
+    payload: [index1, index2],
+  } = yield take(move);
 
-  yield put(setSelected(first));
-
-  const { payload: second } = yield take(actions.select);
-
-  yield put(setSelected(undefined));
-
-  if (second.index && isAdjacentIndexes(first.index, second.index)) {
+  if (isAdjacentIndexes(index1, index2)) {
     const previousBoard = yield select(board);
 
-    const nextBoard = swapIndexes(
-      first.index,
-      second.index,
-      yield select(board)
-    );
+    const nextBoard = swapIndexes(index1, index2, yield select(board));
 
     yield put(setBoard(nextBoard));
 
@@ -43,11 +36,7 @@ function* swapFlow() {
 }
 
 function* cascadeFlow() {
-  while (true) {
-    if (isStable(yield select(board))) {
-      break;
-    }
-
+  while (not(isStable(yield select(board)))) {
     yield delay(1000 / 3);
 
     const cleared = clear(yield select(board));
