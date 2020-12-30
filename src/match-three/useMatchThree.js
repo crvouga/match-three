@@ -13,6 +13,8 @@ export const useMatchThree = () => {
 
   const grabbed = useSelector(selectors.grabbed);
 
+  const status = useSelector(selectors.status);
+
   const dispatch = useDispatch();
 
   return {
@@ -21,5 +23,6 @@ export const useMatchThree = () => {
     columnCount,
     board,
     grabbed,
+    status,
   };
 };

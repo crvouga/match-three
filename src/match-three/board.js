@@ -15,7 +15,7 @@ export const createRandomItem = () => ({
   color: randomNth(COLORS),
 });
 
-export const createRandomBoard = (rowCount = 7, columnCount = 8) =>
+export const createRandomBoard = (rowCount = 8, columnCount = 9) =>
   R.times(() => R.times(() => createRandomItem(), columnCount), rowCount);
 
 /* 

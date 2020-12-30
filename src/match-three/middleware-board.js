@@ -10,7 +10,7 @@ import {
   isStable,
   swap,
 } from "./board";
-import { matchThree } from "./match-three";
+import { matchThree, Status } from "./match-three";
 
 export const animationActions = {
   started: createAction("[animation] STARTED"),
@@ -18,7 +18,7 @@ export const animationActions = {
 };
 
 const { actions, selectors } = matchThree;
-const { setBoard, setGrabbed, grab, drop } = actions;
+const { setStatus, setBoard, setGrabbed, grab, drop } = actions;
 const { board } = selectors;
 
 function* swapFlow() {
@@ -44,6 +44,8 @@ function* swapFlow() {
 }
 
 function* cascadeFlow() {
+  yield put(setStatus(Status.COLLAPSING));
+
   while (not(isStable(yield select(board)))) {
     yield delay(1000 / 3);
 
@@ -57,6 +59,8 @@ function* cascadeFlow() {
 
     yield put(setBoard(fill(yield select(board))));
   }
+
+  yield put(setStatus(undefined));
 }
 
 function* boardFlow() {
