@@ -21,15 +21,23 @@ export const ItemType = {
 export const COLORS = Object.values(Colors);
 
 const isEmptySlot = R.isNil;
-
-const BOMB_PROABILITY = 0.1;
+const MATCHING_SIZE = 3;
+const BOMB_PROABILITY = 0.25;
 export const BOMB_RADIUS = 1.5;
+
 export const createRandomItem = () => ({
   id: createId(),
   color: randomNth(COLORS),
-  type: Math.random() < BOMB_PROABILITY ? ItemType.Bomb : undefined,
+  type: Math.random() <= BOMB_PROABILITY ? ItemType.Bomb : undefined,
 });
 
+const mergeColumn = R.zipWith((item1, item2) =>
+  R.isNil(item1) || R.isNil(item2) ? null : item1
+);
+const merge = R.zipWith(mergeColumn);
+
+const serializeBoard = (board) => JSON.stringify(board);
+const memoize = R.memoizeWith(serializeBoard);
 export const createRandomBoard = (rowCount = 7, columnCount = 7) =>
   R.times(() => R.times(() => createRandomItem(), columnCount), rowCount);
 
@@ -40,71 +48,69 @@ export const createRandomBoard = (rowCount = 7, columnCount = 7) =>
 
 const ungroupMatchings = R.unnest;
 //
-const isValidMatching = R.pipe(R.length, R.gte(R.__, 3));
-const clearMatching = R.map(R.always(null));
-const clearMatchings = R.map(R.when(isValidMatching, clearMatching));
+const isValidMatching = R.pipe(R.length, R.gte(R.__, MATCHING_SIZE));
+const matchingToClearedMatching = R.map(R.always(null));
+
 //
 const isMatching = R.eqBy(R.prop("color"));
 const groupMatchings = R.groupWith(isMatching);
 //
-const clearColumn = R.pipe(groupMatchings, clearMatchings, ungroupMatchings);
-const clearColumns = R.map(clearColumn);
-const clearRows = R.pipe(R.transpose, clearColumns, R.transpose);
-//
-const mergeColumn = R.zipWith((item1, item2) =>
-  R.isNil(item1) || R.isNil(item2) ? null : item1
+const clearColumn = R.pipe(
+  groupMatchings,
+  R.map(R.when(isValidMatching, matchingToClearedMatching)),
+  ungroupMatchings
 );
-const merge = R.zipWith(mergeColumn);
-const mergeAll = (...boards) => R.reduce(merge, R.head(boards), R.tail(boards));
-
+const clearColumnMatchings = R.map(clearColumn);
+const clearRowMatchings = R.pipe(
+  R.transpose,
+  clearColumnMatchings,
+  R.transpose
+);
 //
 
-export const clearRadius = R.curry((radius, index, board) => {
-  return board.map((column, columnIndex) =>
-    column.map((item, rowIndex) =>
-      distance(index, [columnIndex, rowIndex]) <= radius ? null : item
-    )
-  );
-});
+//
 
 const toColumnCount = R.length;
 
 const toRowCount = R.pipe(R.head, R.length);
 
-const toIndexes = (board) =>
-  R.xprod(R.range(0, toColumnCount(board)), R.range(0, toRowCount(board)));
+const toIndexes = R.memoizeWith(
+  (board) => R.join(", ", [toColumnCount(board), toRowCount(board)]),
+  (board) =>
+    R.xprod(R.range(0, toColumnCount(board)), R.range(0, toRowCount(board)))
+);
 
 const isBomb = (item) => item.type === ItemType.Bomb;
 
-export const clearBombs = (board) => {
-  const clearedRowsAndColumns = R.converge(merge, [clearRows, clearColumns])(
-    board
-  );
+const toBombIndexes = (board) =>
+  R.pipe(toIndexes, R.filter(R.pipe(R.path(R.__, board), isBomb)))(board);
 
-  const bombIndexes = R.pipe(
+const clearMatchings = memoize((board) =>
+  merge(clearRowMatchings(board), clearColumnMatchings(board))
+);
+
+const toClearedIndexes = (board) =>
+  R.pipe(
     toIndexes,
-    R.filter(R.pipe(R.path(R.__, board), isBomb))
+    R.filter(R.pipe(R.path(R.__, clearMatchings(board)), R.isNil))
   )(board);
 
-  const clearedBombIndexes = R.filter(
-    R.pipe(R.path(R.__, clearedRowsAndColumns), R.isNil),
-    bombIndexes
-  );
+const toClearedBombIndexes = (board) =>
+  R.intersection(toClearedIndexes(board), toBombIndexes(board));
 
-  const clearedBombs = R.reduce(
-    (board, index) => clearRadius(BOMB_RADIUS, index, board),
-    board,
-    clearedBombIndexes
-  );
+export const clearRadius = R.curry((radius, board, index) =>
+  board.map((column, columnIndex) =>
+    column.map((item, rowIndex) =>
+      distance(index, [columnIndex, rowIndex]) <= radius ? null : item
+    )
+  )
+);
 
-  return clearedBombs;
-};
+export const clearBombs = (board) =>
+  R.reduce(clearRadius(BOMB_RADIUS), board, toClearedBombIndexes(board));
 
-export const clear = R.converge(mergeAll, [
-  clearRows,
-  clearColumns,
-  clearBombs,
-]);
+export const clear = (board) => merge(clearMatchings(board), clearBombs(board));
+
 /* 
 
 
