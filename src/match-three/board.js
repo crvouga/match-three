@@ -15,7 +15,7 @@ export const Colors = {
 };
 
 export const ItemType = {
-  Bomb: "bomb",
+  RadiusBomb: "radius-bomb",
 };
 
 export const COLORS = Object.values(Colors);
@@ -28,7 +28,7 @@ export const BOMB_RADIUS = 1.5;
 export const createRandomItem = () => ({
   id: createId(),
   color: randomNth(COLORS),
-  type: Math.random() <= BOMB_PROABILITY ? ItemType.Bomb : undefined,
+  type: Math.random() <= BOMB_PROABILITY ? ItemType.RadiusBomb : undefined,
 });
 
 const mergeColumn = R.zipWith((item1, item2) =>
@@ -80,10 +80,10 @@ const toIndexes = R.memoizeWith(
     R.xprod(R.range(0, toColumnCount(board)), R.range(0, toRowCount(board)))
 );
 
-const isBomb = (item) => item.type === ItemType.Bomb;
+const isRadiusBomb = (item) => item.type === ItemType.RadiusBomb;
 
 const toBombIndexes = (board) =>
-  R.pipe(toIndexes, R.filter(R.pipe(R.path(R.__, board), isBomb)))(board);
+  R.pipe(toIndexes, R.filter(R.pipe(R.path(R.__, board), isRadiusBomb)))(board);
 
 const clearMatchings = memoize((board) =>
   merge(clearRowMatchings(board), clearColumnMatchings(board))

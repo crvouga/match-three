@@ -51,7 +51,7 @@ export const GameBoardItem = ({ item }) => {
 
   useDisableZoom(ref.current);
 
-  if (item.type === ItemType.Bomb) {
+  if (item.type === ItemType.RadiusBomb) {
     return (
       <motion.div
         style={{ zIndex: 100, width: "100%", height: "100%" }}
