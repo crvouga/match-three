@@ -22,7 +22,7 @@ export const COLORS = Object.values(Colors);
 
 const isEmptySlot = R.isNil;
 const MATCHING_SIZE = 3;
-const BOMB_PROABILITY = 0.25;
+const BOMB_PROABILITY = 0.1;
 export const BOMB_RADIUS = 1.5;
 
 export const createRandomItem = () => ({
