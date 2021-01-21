@@ -15,6 +15,7 @@ export const Colors = {
 };
 
 export const ItemType = {
+  ColorBomb: "color-bomb",
   RadiusBomb: "radius-bomb",
 };
 
@@ -23,12 +24,18 @@ export const COLORS = Object.values(Colors);
 const isEmptySlot = R.isNil;
 const MATCHING_SIZE = 3;
 const BOMB_PROABILITY = 0.1;
+const COLOR_BOMB_PROABILITY = 0.1;
 export const BOMB_RADIUS = 1.5;
 
 export const createRandomItem = () => ({
   id: createId(),
   color: randomNth(COLORS),
-  type: Math.random() <= BOMB_PROABILITY ? ItemType.RadiusBomb : undefined,
+  type:
+    Math.random() <= BOMB_PROABILITY
+      ? ItemType.RadiusBomb
+      : Math.random() <= COLOR_BOMB_PROABILITY
+      ? ItemType.ColorBomb
+      : undefined,
 });
 
 const mergeColumn = R.zipWith((item1, item2) =>
@@ -82,8 +89,13 @@ const toIndexes = R.memoizeWith(
 
 const isRadiusBomb = (item) => item.type === ItemType.RadiusBomb;
 
-const toBombIndexes = (board) =>
+const toRadiusBombIndexes = (board) =>
   R.pipe(toIndexes, R.filter(R.pipe(R.path(R.__, board), isRadiusBomb)))(board);
+
+const isColorBomb = (item) => item.type === ItemType.ColorBomb;
+
+const toColorBombIndexes = (board) =>
+  R.pipe(toIndexes, R.filter(R.pipe(R.path(R.__, board), isColorBomb)))(board);
 
 const clearMatchings = memoize((board) =>
   merge(clearRowMatchings(board), clearColumnMatchings(board))
@@ -95,9 +107,6 @@ const toClearedIndexes = (board) =>
     R.filter(R.pipe(R.path(R.__, clearMatchings(board)), R.isNil))
   )(board);
 
-const toClearedBombIndexes = (board) =>
-  R.intersection(toClearedIndexes(board), toBombIndexes(board));
-
 export const clearRadius = R.curry((radius, board, index) =>
   board.map((column, columnIndex) =>
     column.map((item, rowIndex) =>
@@ -106,10 +115,34 @@ export const clearRadius = R.curry((radius, board, index) =>
   )
 );
 
-export const clearBombs = (board) =>
-  R.reduce(clearRadius(BOMB_RADIUS), board, toClearedBombIndexes(board));
+export const clearRadiusBombs = (board) =>
+  R.reduce(
+    clearRadius(BOMB_RADIUS),
+    board,
+    R.intersection(toClearedIndexes(board), toRadiusBombIndexes(board))
+  );
 
-export const clear = (board) => merge(clearMatchings(board), clearBombs(board));
+export const clearColor = (color, board) =>
+  board.map((column) =>
+    column.map((item) => (item.color === color ? null : item))
+  );
+
+const clearColorBombs = (board) =>
+  R.reduce(
+    (board, index) => {
+      const color = R.path(index, board).color;
+      console.log({ color });
+      return clearColor(color, board);
+    },
+    board,
+    R.intersection(toClearedIndexes(board), toColorBombIndexes(board))
+  );
+
+export const clear = (board) =>
+  merge(
+    merge(clearMatchings(board), clearRadiusBombs(board)),
+    clearColorBombs(board)
+  );
 
 /* 
 

@@ -76,9 +76,11 @@ export function* boardSaga() {
 
   yield put(setBoard(emptyBoard));
 
-  yield delay(1000);
+  yield delay(500);
 
   const initialBoard = createRandomBoard();
+
+  console.log({ initialBoard });
 
   yield put(setBoard(initialBoard));
 
