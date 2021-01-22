@@ -28,16 +28,8 @@ export const ItemType = {
   LineBomb: "LineBomb",
 };
 
-export const itemTypeToProability = {
-  [ItemType.ColorBomb]: 0.04,
-  [ItemType.RadiusBomb]: 0.05,
-  [ItemType.LineBomb]: 0.05,
-};
-
 const createRandomItemType = () => {
-  const itemType = randomNth(R.values(ItemType));
-
-  return Math.random() <= itemTypeToProability[itemType] ? itemType : undefined;
+  return Math.random() <= 1 / 20 ? randomNth(R.values(ItemType)) : undefined;
 };
 
 export const createRandomItem = () => ({
