@@ -80,8 +80,6 @@ export function* boardSaga() {
 
   const initialBoard = createRandomBoard();
 
-  console.log({ initialBoard });
-
   yield put(setBoard(initialBoard));
 
   yield fork(boardFlow);

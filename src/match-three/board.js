@@ -1,6 +1,9 @@
 import * as R from "ramda";
 import { createId, distance, randomNth } from "../utility";
 
+const MATCHING_SIZE = 3;
+const BOMB_RADIUS = 1.5;
+
 /* 
 
 
@@ -13,69 +16,44 @@ export const Colors = {
   Green: "green",
   Purple: "purple",
 };
-
-export const ItemType = {
-  ColorBomb: "color-bomb",
-  RadiusBomb: "radius-bomb",
-};
-
 export const COLORS = Object.values(Colors);
 
-const isEmptySlot = R.isNil;
-const MATCHING_SIZE = 3;
-const BOMB_PROABILITY = 0.1;
-const COLOR_BOMB_PROABILITY = 0.1;
-export const BOMB_RADIUS = 1.5;
+const createRandomColor = () => {
+  return randomNth(COLORS);
+};
+
+export const ItemType = {
+  ColorBomb: "ColorBomb",
+  RadiusBomb: "RadiusBomb",
+  LineBomb: "LineBomb",
+};
+
+export const itemTypeToProability = {
+  [ItemType.ColorBomb]: 0.04,
+  [ItemType.RadiusBomb]: 0.05,
+  [ItemType.LineBomb]: 0.05,
+};
+
+const createRandomItemType = () => {
+  const itemType = randomNth(R.values(ItemType));
+
+  return Math.random() <= itemTypeToProability[itemType] ? itemType : undefined;
+};
 
 export const createRandomItem = () => ({
   id: createId(),
-  color: randomNth(COLORS),
-  type:
-    Math.random() <= BOMB_PROABILITY
-      ? ItemType.RadiusBomb
-      : Math.random() <= COLOR_BOMB_PROABILITY
-      ? ItemType.ColorBomb
-      : undefined,
+  color: createRandomColor(),
+  type: createRandomItemType(),
 });
 
-const mergeColumn = R.zipWith((item1, item2) =>
-  R.isNil(item1) || R.isNil(item2) ? null : item1
-);
-const merge = R.zipWith(mergeColumn);
-
-const serializeBoard = (board) => JSON.stringify(board);
-const memoize = R.memoizeWith(serializeBoard);
 export const createRandomBoard = (rowCount = 7, columnCount = 7) =>
   R.times(() => R.times(() => createRandomItem(), columnCount), rowCount);
 
-/* 
-
-
-*/
-
-const ungroupMatchings = R.unnest;
-//
-const isValidMatching = R.pipe(R.length, R.gte(R.__, MATCHING_SIZE));
-const matchingToClearedMatching = R.map(R.always(null));
-
-//
-const isMatching = R.eqBy(R.prop("color"));
-const groupMatchings = R.groupWith(isMatching);
-//
-const clearColumn = R.pipe(
-  groupMatchings,
-  R.map(R.when(isValidMatching, matchingToClearedMatching)),
-  ungroupMatchings
+const mergeColumns = R.zipWith((item1, item2) =>
+  R.isNil(item1) || R.isNil(item2) ? null : item1
 );
-const clearColumnMatchings = R.map(clearColumn);
-const clearRowMatchings = R.pipe(
-  R.transpose,
-  clearColumnMatchings,
-  R.transpose
-);
-//
 
-//
+const mergeBoards = R.zipWith(mergeColumns);
 
 const toColumnCount = R.length;
 
@@ -86,79 +64,169 @@ const toIndexes = R.memoizeWith(
   (board) =>
     R.xprod(R.range(0, toColumnCount(board)), R.range(0, toRowCount(board)))
 );
+const toIndexesWhere = (predicate, board) =>
+  R.filter((index) => predicate(index, R.path(index, board)), toIndexes(board));
+
+const setIndex = (index, value, board) =>
+  R.set(R.lensPath(index), value, board);
+
+/* 
+
+clear matchings
+
+*/
+
+const clearColumnMatchings = R.map(
+  R.pipe(
+    R.groupWith(R.eqBy(R.prop("color"))),
+    R.map(
+      R.when(
+        R.pipe(R.length, R.gte(R.__, MATCHING_SIZE)),
+        R.map(R.always(null))
+      )
+    ),
+    R.unnest
+  )
+);
+
+const clearRowMatchings = R.pipe(
+  R.transpose,
+  clearColumnMatchings,
+  R.transpose
+);
+
+const clearMatchings = (board) =>
+  mergeBoards(clearRowMatchings(board), clearColumnMatchings(board));
+
+//
+
+const toMatchingIndexes = (board) =>
+  toIndexesWhere((index, item) => R.isNil(item), clearMatchings(board));
+
+const toRowMatchingIndexes = (board) =>
+  toIndexesWhere((index, item) => R.isNil(item), clearRowMatchings(board));
+
+const toColumnMatchingIndexes = (board) =>
+  toIndexesWhere((index, item) => R.isNil(item), clearColumnMatchings(board));
+
+/* 
+
+clear radius bombs
+
+*/
 
 const isRadiusBomb = (item) => item.type === ItemType.RadiusBomb;
 
 const toRadiusBombIndexes = (board) =>
-  R.pipe(toIndexes, R.filter(R.pipe(R.path(R.__, board), isRadiusBomb)))(board);
+  toIndexesWhere((index, item) => isRadiusBomb(item), board);
+
+const clearRadius = (index1, board) =>
+  R.reduce(
+    (board, index) => setIndex(index, null, board),
+    board,
+    toIndexesWhere((index2) => distance(index1, index2) <= BOMB_RADIUS, board)
+  );
+
+const clearRadiusBombs = (board) =>
+  R.reduce(
+    (runningBoard, index) => clearRadius(index, runningBoard),
+    board,
+    R.intersection(toMatchingIndexes(board), toRadiusBombIndexes(board))
+  );
+
+/* 
+
+clear same color bombs
+
+*/
 
 const isColorBomb = (item) => item.type === ItemType.ColorBomb;
 
 const toColorBombIndexes = (board) =>
-  R.pipe(toIndexes, R.filter(R.pipe(R.path(R.__, board), isColorBomb)))(board);
+  toIndexesWhere((index, item) => isColorBomb(item), board);
 
-const clearMatchings = memoize((board) =>
-  merge(clearRowMatchings(board), clearColumnMatchings(board))
-);
-
-const toClearedIndexes = (board) =>
-  R.pipe(
-    toIndexes,
-    R.filter(R.pipe(R.path(R.__, clearMatchings(board)), R.isNil))
-  )(board);
-
-export const clearRadius = R.curry((radius, board, index) =>
-  board.map((column, columnIndex) =>
-    column.map((item, rowIndex) =>
-      distance(index, [columnIndex, rowIndex]) <= radius ? null : item
-    )
-  )
-);
-
-export const clearRadiusBombs = (board) =>
-  R.reduce(
-    clearRadius(BOMB_RADIUS),
-    board,
-    R.intersection(toClearedIndexes(board), toRadiusBombIndexes(board))
-  );
-
-export const clearColor = (color, board) =>
-  board.map((column) =>
-    column.map((item) => (item.color === color ? null : item))
-  );
+const clearColor = (color, board) =>
+  R.map(R.map(R.when((item) => item?.color === color, R.always(null))), board);
 
 const clearColorBombs = (board) =>
   R.reduce(
-    (board, index) => {
-      const color = R.path(index, board).color;
-      console.log({ color });
-      return clearColor(color, board);
-    },
+    (runningBoard, index) =>
+      clearColor(R.path(index, board).color, runningBoard),
     board,
-    R.intersection(toClearedIndexes(board), toColorBombIndexes(board))
+    R.intersection(toMatchingIndexes(board), toColorBombIndexes(board))
   );
+
+/* 
+
+clear line bombs
+
+*/
+
+const isLineBomb = (item) => item.type === ItemType.LineBomb;
+
+const toLineBombIndexes = (board) =>
+  toIndexesWhere((index, item) => isLineBomb(item), board);
+
+//
+
+const clearColumn = (columnIndex, board) =>
+  R.reduce(
+    (runningBoard, index) => setIndex(index, null, runningBoard),
+    board,
+    toIndexesWhere((index) => index[0] === columnIndex, board)
+  );
+
+const clearColumnLineBombs = (board) =>
+  R.reduce(
+    (runningBoard, index) => clearColumn(index[0], runningBoard),
+    board,
+    R.intersection(toColumnMatchingIndexes(board), toLineBombIndexes(board))
+  );
+
+//
+
+const clearRow = (rowIndex, board) =>
+  R.reduce(
+    (runningBoard, index) => setIndex(index, null, runningBoard),
+    board,
+    toIndexesWhere((index) => index[1] === rowIndex, board)
+  );
+
+const clearRowLineBombs = (board) =>
+  R.reduce(
+    (runningBoard, index) => clearRow(index[1], runningBoard),
+    board,
+    R.intersection(toRowMatchingIndexes(board), toLineBombIndexes(board))
+  );
+
+/* 
+
+clear board
+
+*/
 
 export const clear = (board) =>
-  merge(
-    merge(clearMatchings(board), clearRadiusBombs(board)),
-    clearColorBombs(board)
-  );
+  R.reduce(mergeBoards, board, [
+    clearMatchings(board),
+    clearRadiusBombs(board),
+    clearColorBombs(board),
+    clearColumnLineBombs(board),
+    clearRowLineBombs(board),
+  ]);
 
 /* 
 
 
 */
 
-const collapseColumn = R.sort(R.descend(isEmptySlot));
-export const collapse = R.map(collapseColumn);
+export const collapse = R.map(R.sort(R.descend(R.isNil)));
 
 /* 
 
 
 */
 
-const fillColumn = R.map(R.when(isEmptySlot, createRandomItem));
-export const fill = R.map(fillColumn);
+export const fill = R.map(R.map(R.when(R.isNil, createRandomItem)));
 
 /* 
 

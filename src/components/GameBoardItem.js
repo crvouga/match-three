@@ -2,7 +2,7 @@ import { makeStyles } from "@material-ui/core";
 import { blue, green, purple, red, yellow } from "@material-ui/core/colors";
 import { motion } from "framer-motion";
 import React, { useRef } from "react";
-import { BOMB_RADIUS, ItemType } from "../match-three/board";
+import { ItemType } from "../match-three/board";
 import { useDisableZoom } from "./useDisableZoom";
 
 const muiColorToGradient = (muiColor) =>
@@ -27,23 +27,35 @@ const useStyles = makeStyles((theme) => ({
     height: "100%",
     background: ({ color }) => muiColorToGradient(colorToMuiColor(color)),
   },
-  colorBomb: {
+
+  radiusBomb: {
     width: "100%",
     height: "100%",
     borderRadius: "50%",
     background: ({ color }) => muiColotToBombGradient(colorToMuiColor(color)),
   },
-  radiusBomb: {
+
+  colorBomb: {
     width: "100%",
     height: "100%",
     background: "transparent",
     borderRadius: "50%",
     border: ({ color }) =>
-      `${theme.spacing(1)}px solid ${colorToMuiColor(color)[500]}`,
+      `${theme.spacing(1)}px solid ${colorToMuiColor(color)[600]}`,
+  },
+
+  lineBomb: {
+    borderRadius: theme.spacing(1),
+    width: "100%",
+    height: "100%",
+    background: "transparent",
+
+    border: ({ color }) =>
+      `${theme.spacing(1)}px solid ${colorToMuiColor(color)[600]}`,
   },
 }));
 
-const Item = ({ item }) => {
+const DefaultItem = ({ item }) => {
   const classes = useStyles({ color: item.color });
 
   return <div className={classes.item} />;
@@ -61,69 +73,40 @@ const ColorBombItem = ({ item }) => {
   return <div className={classes.colorBomb} />;
 };
 
+const LineBombItem = ({ item }) => {
+  const classes = useStyles({ color: item.color });
+
+  return <div className={classes.lineBomb} />;
+};
+
+export const Item = ({ item }) => {
+  switch (item.type) {
+    case ItemType.LineBomb:
+      return <LineBombItem item={item} />;
+    case ItemType.RadiusBomb:
+      return <RadiusBombItem item={item} />;
+    case ItemType.ColorBomb:
+      return <ColorBombItem item={item} />;
+    default:
+      return <DefaultItem item={item} />;
+  }
+};
+
 export const GameBoardItem = ({ item }) => {
   const ref = useRef();
 
   useDisableZoom(ref.current);
 
-  if (item.type === ItemType.RadiusBomb) {
-    return (
-      <motion.div
-        style={{ zIndex: 100, width: "100%", height: "100%" }}
-        ref={ref}
-        initial={{
-          scale: 0,
-          transformOrigin: "center",
-        }}
-        animate={{
-          scale: 0.8,
-          transformOrigin: "center",
-        }}
-        exit={{
-          transformOrigin: "center",
-          scale: 1 + BOMB_RADIUS,
-          opacity: 0,
-        }}
-      >
-        <RadiusBombItem item={item} />
-      </motion.div>
-    );
-  }
-
-  if (item.type === ItemType.ColorBomb) {
-    return (
-      <motion.div
-        style={{ zIndex: 100, width: "100%", height: "100%" }}
-        ref={ref}
-        initial={{
-          scale: 0,
-          transformOrigin: "center",
-        }}
-        animate={{
-          scale: 0.8,
-          transformOrigin: "center",
-        }}
-        exit={{
-          transformOrigin: "center",
-          scale: 1 + BOMB_RADIUS,
-          opacity: 0,
-        }}
-      >
-        <ColorBombItem item={item} />
-      </motion.div>
-    );
-  }
-
   return (
     <motion.div
-      style={{ width: "100%", height: "100%" }}
+      style={{ zIndex: 100, width: "100%", height: "100%" }}
       ref={ref}
       initial={{
         scale: 0,
         transformOrigin: "center",
       }}
       animate={{
-        scale: 0.9,
+        scale: 0.85,
         transformOrigin: "center",
       }}
       exit={{
