@@ -24,7 +24,6 @@
     "uniqid": "^5.2.0"
   },
   "scripts": {
-    "deploy": "npm run build && firebase deploy --project match-three-game",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
