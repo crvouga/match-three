@@ -2,6 +2,7 @@
   "name": "match-three",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://crvouga.github.io/match-three",
   "dependencies": {
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
@@ -24,6 +25,8 @@
     "uniqid": "^5.2.0"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
