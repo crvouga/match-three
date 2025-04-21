@@ -1,7 +1,7 @@
 import * as R from "ramda";
-import uniqid from "uniqid";
+import { nanoid } from "nanoid";
 
-export const createId = () => uniqid();
+export const createId = () => nanoid();
 
 export const shuffle = R.sortBy(Math.random);
 
