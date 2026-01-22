@@ -31,7 +31,8 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "preview": "docker build -t match-three-app . && docker run -p 80:80 match-three-app"
+    "preview": "docker build -t match-three-app . && docker run -p 80:80 match-three-app",
+    "docker:preview": "docker build -t crvouga/match-three:latest . && docker run -p 80:80 crvouga/match-three:latest"
   },
   "eslintConfig": {
     "extends": "react-app"
