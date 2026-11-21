@@ -11,6 +11,8 @@ env:
   REGISTRY: docker.io
   IMAGE_NAME: crvouga/match-three
 
+permissions: write-all
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
